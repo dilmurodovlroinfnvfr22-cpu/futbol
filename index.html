@@ -2,64 +2,84 @@
 <html lang="uz">
 <head>
     <style>
-        body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; color: white; font-family: sans-serif; }
-        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 8px solid #0f3460; }
-        .cell { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; }
-        .white { background: #f0f0f0; }
-        .black { background: #533421; }
-        .piece { width: 45px; height: 45px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; }
-        .p-player { background: #e94560; }
-        .p-ai { background: #000; }
-        .selected { outline: 4px solid yellow; }
+        body { background: #1a1a2e; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .board { display: grid; grid-template-columns: repeat(8, 50px); grid-template-rows: repeat(8, 50px); border: 5px solid #0f3460; }
+        .cell { width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+        .white { background: #f0d9b5; } .black { background: #b58863; }
+        .piece { width: 40px; height: 40px; border-radius: 50%; cursor: pointer; border: 2px solid #000; }
+        .p-player { background: #e94560; } .p-ai { background: #000; }
+        .controls { margin: 20px; }
+        button { padding: 8px; margin: 2px; cursor: pointer; background: #0f3460; color: white; border: none; }
     </style>
 </head>
 <body>
     <h1>Shashka: Pro Level</h1>
+    <div class="controls" id="levels"></div>
     <div class="board" id="board"></div>
 
     <script>
-        const boardElement = document.getElementById('board');
-        let selected = null;
         let boardState = [
-            [0, 2, 0, 2, 0, 2, 0, 2],
-            [2, 0, 2, 0, 2, 0, 2, 0],
-            [0, 2, 0, 2, 0, 2, 0, 2],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0],
-            [1, 0, 1, 0, 1, 0, 1, 0],
-            [0, 1, 0, 1, 0, 1, 0, 1],
-            [1, 0, 1, 0, 1, 0, 1, 0]
+            [0, 2, 0, 2, 0, 2, 0, 2], [2, 0, 2, 0, 2, 0, 2, 0], [0, 2, 0, 2, 0, 2, 0, 2],
+            [0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 1, 0, 1, 0, 1, 0], [0, 1, 0, 1, 0, 1, 0, 1], [1, 0, 1, 0, 1, 0, 1, 0]
         ];
+        let difficulty = 1;
+        let selected = null;
+
+        // Level tugmalarini yaratish
+        const levels = document.getElementById('levels');
+        for(let i=1; i<=10; i++) {
+            let btn = document.createElement('button');
+            btn.innerText = i;
+            btn.onclick = () => { difficulty = i; alert("Level " + i + " tanlandi!"); };
+            levels.appendChild(btn);
+        }
 
         function render() {
-            boardElement.innerHTML = '';
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
+            const b = document.getElementById('board');
+            b.innerHTML = '';
+            for(let r=0; r<8; r++) {
+                for(let c=0; c<8; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'cell ' + ((r + c) % 2 == 0 ? 'white' : 'black');
+                    cell.className = 'cell ' + ((r+c)%2===0 ? 'white' : 'black');
                     cell.onclick = () => handleCell(r, c);
-                    
-                    if (boardState[r][c] !== 0) {
-                        const piece = document.createElement('div');
-                        piece.className = 'piece ' + (boardState[r][c] === 1 ? 'p-player' : 'p-ai');
-                        if (selected && selected.r === r && selected.c === c) piece.classList.add('selected');
-                        cell.appendChild(piece);
+                    if(boardState[r][c] !== 0) {
+                        const p = document.createElement('div');
+                        p.className = 'piece ' + (boardState[r][c] === 1 ? 'p-player' : 'p-ai');
+                        cell.appendChild(p);
                     }
-                    boardElement.appendChild(cell);
+                    b.appendChild(cell);
                 }
             }
         }
 
         function handleCell(r, c) {
-            if (boardState[r][c] === 1) {
-                selected = {r, c};
-            } else if (selected && boardState[r][c] === 0) {
+            if(boardState[r][c] === 1) { selected = {r, c}; }
+            else if(selected && boardState[r][c] === 0) {
                 boardState[r][c] = 1;
                 boardState[selected.r][selected.c] = 0;
                 selected = null;
+                render();
+                setTimeout(aiMove, 500); // Siz yurgach, AI 0.5 soniyadan keyin yuradi
+            }
+        }
+
+        function aiMove() {
+            // AI oddiy logikasi (Levelga qarab):
+            let moves = [];
+            for(let r=0; r<8; r++) for(let c=0; c<8; c++) if(boardState[r][c] === 2) moves.push({r,c});
+            
+            if(moves.length > 0) {
+                let m = moves[Math.floor(Math.random() * moves.length)];
+                // Oddiy AI yurishi (AI pastga qarab yuradi)
+                if(m.r < 7 && boardState[m.r+1][(m.c+1)%8] === 0) {
+                    boardState[m.r+1][(m.c+1)%8] = 2;
+                    boardState[m.r][m.c] = 0;
+                }
             }
             render();
         }
+
         render();
     </script>
 </body>
