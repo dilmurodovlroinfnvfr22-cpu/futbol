@@ -1,44 +1,43 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>3D O'yin Poydevori</title>
-    <style> body { margin: 0; overflow: hidden; } canvas { display: block; } </style>
+    <style>
+        body { background: #1a1a2e; display: flex; flex-direction: column; align-items: center; color: white; font-family: sans-serif; }
+        .controls { margin-bottom: 20px; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; background: #0f3460; color: white; border: none; border-radius: 5px; }
+        button:hover { background: #e94560; }
+        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); gap: 2px; border: 5px solid #0f3460; }
+        .cell { width: 60px; height: 60px; background: #e94560; }
+        .cell.white { background: #f0f0f0; }
+    </style>
 </head>
 <body>
+    <h1>Shashka: Pro Level</h1>
+    <div class="controls" id="levels">
+        </div>
+    <div class="board" id="board"></div>
 
-    <script type="module">
-        import * as THREE from 'https://cdn.skypack.dev/three@0.136.0';
-
-        // 1. Sahnani yaratamiz
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // 2. Qahramon (Kub) - bu keyinchalik Subway Surfers odamchasi bo'ladi
-        const geometry = new THREE.BoxGeometry();
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00, wireframe: true });
-        const cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
-
-        camera.position.z = 5;
-
-        // 3. O'yin tsikli (Game Loop)
-        function animate() {
-            requestAnimationFrame(animate);
-            cube.rotation.x += 0.01;
-            cube.rotation.y += 0.01;
-            renderer.render(scene, camera);
+    <script>
+        // Daraja tugmalarini yaratish
+        const levelsDiv = document.getElementById('levels');
+        for(let i=1; i<=10; i++) {
+            let btn = document.createElement('button');
+            btn.innerText = "Level " + i;
+            btn.onclick = () => setDifficulty(i);
+            levelsDiv.appendChild(btn);
         }
-        animate();
 
-        // 4. Boshqaruv (Klaviatura)
-        window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') cube.position.x -= 0.5;
-            if (e.key === 'ArrowRight') cube.position.x += 0.5;
-        });
+        function setDifficulty(level) {
+            alert("Siz " + level + "-darajani tanladingiz. AI endi o'shancha chuqurlikda o'ylaydi.");
+        }
+        
+        // Taxtani chizish (boshlang'ich qism)
+        const board = document.getElementById('board');
+        for(let i=0; i<64; i++) {
+            let cell = document.createElement('div');
+            cell.className = 'cell ' + ((Math.floor(i/8) + i%8) % 2 == 0 ? 'white' : '');
+            board.appendChild(cell);
+        }
     </script>
 </body>
 </html>
