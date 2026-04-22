@@ -1,33 +1,50 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
+    <meta charset="UTF-8">
+    <title>Pro Shashka</title>
     <style>
-        body { background: #1a1a2e; color: white; display: flex; flex-direction: column; align-items: center; font-family: sans-serif; }
-        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 5px solid #0f3460; }
+        body { background: #0f3460; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+        .controls { margin: 20px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #e94560; border: none; color: white; border-radius: 5px; font-weight: bold; }
+        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 10px solid #1a1a2e; }
         .cell { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .white { background: #f0d9b5; } .black { background: #b58863; }
-        .piece { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #000; }
-        .player { background: #e94560; } .ai { background: #000; }
-        .selected { outline: 4px solid yellow; }
+        .piece { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #000; transition: 0.3s; }
+        .p1 { background: #e94560; } .p2 { background: #000; }
+        .selected { outline: 5px solid yellow; transform: scale(1.1); }
     </style>
 </head>
 <body>
     <h1>Shashka: Pro Level</h1>
+    <div class="controls" id="levels"></div>
     <div class="board" id="board"></div>
+    <h2 id="status">O'yin boshlandi!</h2>
 
     <script>
         let board = Array(8).fill(null).map(() => Array(8).fill(0));
         let selected = null;
-        let turn = 'player'; // 'player' yoki 'ai'
+        let turn = 1; // 1: Player, 2: AI
+        let aiLevel = 1;
 
-        // Boshlang'ich holat: 1-player, 2-ai
-        for(let r=0; r<8; r++) {
-            for(let c=0; c<8; c++) {
-                if((r+c)%2 !== 0) {
-                    if(r < 3) board[r][c] = 2;
-                    else if(r > 4) board[r][c] = 1;
+        function initBoard() {
+            for(let r=0; r<8; r++) {
+                for(let c=0; c<8; c++) {
+                    if((r+c)%2 !== 0) {
+                        if(r < 3) board[r][c] = 2;
+                        else if(r > 4) board[r][c] = 1;
+                    }
                 }
             }
+        }
+
+        // Darajalar tugmasi
+        const lvlDiv = document.getElementById('levels');
+        for(let i=1; i<=10; i++) {
+            let b = document.createElement('button');
+            b.innerText = "Level " + i;
+            b.onclick = () => { aiLevel = i; alert("Level " + i + " tanlandi!"); };
+            lvlDiv.appendChild(b);
         }
 
         function render() {
@@ -36,11 +53,11 @@
             for(let r=0; r<8; r++) {
                 for(let c=0; c<8; c++) {
                     const cell = document.createElement('div');
-                    cell.className = 'cell ' + ((r+c)%2 === 0 ? 'white' : 'black');
-                    cell.onclick = () => handleMove(r, c);
+                    cell.className = 'cell ' + ((r+c)%2===0 ? 'white' : 'black');
+                    cell.onclick = () => handleCell(r, c);
                     if(board[r][c] !== 0) {
                         const p = document.createElement('div');
-                        p.className = 'piece ' + (board[r][c] === 1 ? 'player' : 'ai');
+                        p.className = 'piece ' + (board[r][c] === 1 ? 'p1' : 'p2');
                         if(selected && selected.r === r && selected.c === c) p.classList.add('selected');
                         cell.appendChild(p);
                     }
@@ -49,44 +66,49 @@
             }
         }
 
-        function handleMove(r, c) {
-            if(turn !== 'player') return;
-
-            // Donani tanlash
-            if(board[r][c] === 1) {
-                selected = {r, c};
+        function handleCell(r, c) {
+            if(turn !== 1) return;
+            // Tanlash
+            if(board[r][c] === 1) { selected = {r, c}; render(); }
+            // Yurish (Diagonal va oddiy)
+            else if(selected && board[r][c] === 0 && Math.abs(selected.r - r) === 1 && Math.abs(selected.c - c) === 1) {
+                board[r][c] = 1;
+                board[selected.r][selected.c] = 0;
+                selected = null;
+                turn = 2;
                 render();
-            } 
-            // Yurish
-            else if(selected && board[r][c] === 0) {
-                if(Math.abs(selected.r - r) === 1 && Math.abs(selected.c - c) === 1) {
-                    board[r][c] = 1;
-                    board[selected.r][selected.c] = 0;
-                    selected = null;
-                    turn = 'ai';
-                    render();
-                    setTimeout(aiMove, 500);
-                }
+                setTimeout(aiTurn, 500);
             }
         }
 
-        function aiMove() {
-            // Oddiy AI: bitta yaroqli yurish topadi
+        function aiTurn() {
+            // AI oddiy yurish (Level ga qarab biroz aqlliroq bo'ladi)
+            let moves = [];
             for(let r=0; r<8; r++) {
                 for(let c=0; c<8; c++) {
                     if(board[r][c] === 2) {
-                        // Pastga qarab yurishga urinadi
-                        if(r+1 < 8 && c+1 < 8 && board[r+1][c+1] === 0) {
-                            board[r+1][c+1] = 2;
-                            board[r][c] = 0;
-                            turn = 'player';
-                            render();
-                            return;
-                        }
+                        if(r+1 < 8 && c+1 < 8 && board[r+1][c+1] === 0) moves.push({from:{r,c}, to:{r:r+1, c:c+1}});
                     }
                 }
             }
+            if(moves.length > 0) {
+                let move = moves[Math.floor(Math.random() * moves.length)];
+                board[move.to.r][move.to.c] = 2;
+                board[move.from.r][move.from.c] = 0;
+            }
+            turn = 1;
+            render();
+            checkWinner();
         }
+
+        function checkWinner() {
+            let p1 = 0, p2 = 0;
+            board.forEach(row => row.forEach(c => { if(c===1) p1++; if(c===2) p2++; }));
+            if(p1 === 0) document.getElementById('status').innerText = "AI Yutdi!";
+            if(p2 === 0) document.getElementById('status').innerText = "Siz Yutdingiz!";
+        }
+
+        initBoard();
         render();
     </script>
 </body>
