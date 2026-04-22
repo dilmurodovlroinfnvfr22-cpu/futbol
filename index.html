@@ -1,48 +1,12 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Futbol Arxiv</title>
-    <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f4f4f9; }
-        .card { border: 1px solid #ccc; margin: 10px auto; padding: 15px; border-radius: 8px; max-width: 300px; background: white; }
-    </style>
-</head>
-<body>
-    <h1>Mening Futbol Arxivim</h1>
-    <div id="app">Ma'lumotlar yuklanmoqda...</div>
-
-    <script>
-        fetch('data.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error("Server xatosi: " + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const app = document.getElementById('app');
-                app.innerHTML = ""; 
-                
-                // Ma'lumotlarni tekshirish
-                if(data.footballers && data.footballers.messi) {
-                    data.footballers.messi.forEach(item => {
-                        app.innerHTML += `
-                            <div class="card">
-                                <h3>Raqib: ${item.opponent}</h3>
-                                <p>Sana: ${item.date}</p>
-                                <a href="${item.file_id}" target="_blank" style="display:block; padding:10px; background:blue; color:white; text-decoration:none; border-radius:5px;">Videoni ko'rish</a>
-                            </div>
-                        `;
-                    });
-                } else {
-                    app.innerHTML = "Xatolik: JSON strukturasi noto'g'ri.";
-                }
-            })
-            .catch(err => {
-                // Endi xato bo'lsa, sahifada yozuv chiqadi!
-                document.getElementById('app').innerHTML = "Xatolik yuz berdi: " + err.message;
-                console.error("Xatolik:", err);
-            });
-    </script>
-</body>
-</html>
+// Eski kodingizda: fetch('data.json') edi.
+// Buni o'zgartiring:
+fetch('db.json') 
+    .then(response => {
+        if (!response.ok) {
+            throw new Error("Fayl topilmadi! Status: " + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        // ... qolgan kodlar o'zgarmaydi
+    })
