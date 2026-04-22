@@ -4,63 +4,40 @@
     <meta charset="UTF-8">
     <title>Pro Shashka</title>
     <style>
-        body { background: #1a1a2e; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-        #menu { display: flex; flex-direction: column; align-items: center; margin-top: 50px; }
-        #game-board { display: none; margin-top: 20px; }
-        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 8px solid #0f3460; }
+        body { background: #1a1a2e; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .board { display: grid; grid-template-columns: repeat(8, 60px); grid-template-rows: repeat(8, 60px); border: 8px solid #0f3460; margin-top: 20px; }
         .cell { width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .white { background: #f0d9b5; } .black { background: #b58863; }
         .piece { width: 45px; height: 45px; border-radius: 50%; border: 3px solid #000; transition: 0.2s; }
         .p1 { background: #e94560; } .p2 { background: #000; }
         .selected { outline: 4px solid yellow; transform: scale(1.1); }
-        button { padding: 15px 30px; margin: 10px; cursor: pointer; background: #e94560; color: white; border: none; border-radius: 5px; font-weight: bold; font-size: 16px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #e94560; color: white; border: none; }
     </style>
 </head>
 <body>
-    <div id="menu">
-        <h1>Qiyinchilik darajasini tanlang:</h1>
-        <div id="levels"></div>
-    </div>
-
-    <div id="game-board">
-        <h1>O'yin davom etmoqda...</h1>
-        <div class="board" id="board"></div>
-    </div>
+    <h1>Shashka: Pro Level</h1>
+    <div id="controls"><button onclick="startGame()">O'yinni boshlash</button></div>
+    <div class="board" id="board"></div>
+    <h2 id="status"></h2>
 
     <script>
         let board = Array(8).fill(null).map(() => Array(8).fill(0));
         let selected = null;
         let turn = 1; // 1: Player, 2: AI
 
-        // 1. Menyuni yaratish
-        const levelsDiv = document.getElementById('levels');
-        for(let i=1; i<=10; i++) {
-            let btn = document.createElement('button');
-            btn.innerText = "Level " + i;
-            btn.onclick = () => startGame(i);
-            levelsDiv.appendChild(btn);
-        }
-
-        function startGame(level) {
-            document.getElementById('menu').style.display = 'none';
-            document.getElementById('game-board').style.display = 'flex';
-            document.getElementById('game-board').style.flexDirection = 'column';
-            document.getElementById('game-board').style.alignItems = 'center';
-            initBoard();
-            render();
-            alert("Level " + level + " boshlandi! Omad!");
-        }
-
-        function initBoard() {
+        function startGame() {
+            board = Array(8).fill(null).map(() => Array(8).fill(0));
             for(let r=0; r<8; r++) {
                 for(let c=0; c<8; c++) {
                     if((r+c)%2 !== 0) {
-                        if(r < 3) board[r][c] = 2; // AI
-                        else if(r > 4) board[r][c] = 1; // Player
-                        else board[r][c] = 0;
+                        if(r < 3) board[r][c] = 2;
+                        else if(r > 4) board[r][c] = 1;
                     }
                 }
             }
+            turn = 1;
+            document.getElementById('status').innerText = "Sizning navbatingiz";
+            render();
         }
 
         function render() {
@@ -84,61 +61,69 @@
 
         function handleCell(r, c) {
             if(turn !== 1) return;
-
-            // Donani tanlash
             if(board[r][c] === 1) { selected = {r, c}; render(); }
-            // Yurish yoki Yeyish
             else if(selected && board[r][c] === 0) {
-                let dr = Math.abs(selected.r - r);
+                let dr = selected.r - r;
                 let dc = Math.abs(selected.c - c);
 
-                // Oddiy yurish (1 katak)
-                if(dr === 1 && dc === 1) {
-                    board[r][c] = 1;
-                    board[selected.r][selected.c] = 0;
-                    endTurn();
+                // Oddiy yurish
+                if(Math.abs(dr) === 1 && dc === 1 && dr > 0) {
+                    movePiece(selected.r, selected.c, r, c);
                 } 
-                // Yeyish (2 katak sakrash)
-                else if(dr === 2 && dc === 2) {
+                // Yeyish (Capture)
+                else if(Math.abs(dr) === 2 && dc === 2) {
                     let midR = (selected.r + r) / 2;
                     let midC = (selected.c + c) / 2;
-                    if(board[midR][midC] === 2) { // Agar o'rtada raqib bo'lsa
-                        board[r][c] = 1;
-                        board[midR][midC] = 0; // Raqib donasini o'chirish
-                        board[selected.r][selected.c] = 0;
-                        endTurn();
+                    if(board[midR][midC] === 2) {
+                        board[midR][midC] = 0;
+                        movePiece(selected.r, selected.c, r, c);
                     }
                 }
             }
         }
 
-        function endTurn() {
+        function movePiece(fr, fc, tr, tc) {
+            board[tr][tc] = board[fr][fc];
+            board[fr][fc] = 0;
             selected = null;
+            checkWinner();
             turn = 2;
             render();
-            setTimeout(aiTurn, 500);
+            setTimeout(aiTurn, 800);
         }
 
         function aiTurn() {
-            // AI oddiy logikasi: random yurish yoki yeyish
-            let moves = [];
+            // AI Logic: Avvalo yeyishni qidiradi
             for(let r=0; r<8; r++) {
                 for(let c=0; c<8; c++) {
                     if(board[r][c] === 2) {
-                        // Oddiy yurish
-                        if(r+1 < 8 && (c+1<8 && board[r+1][c+1] === 0 || c-1>=0 && board[r+1][c-1] === 0)) {
-                            moves.push({from:{r,c}, to: c+1<8 && board[r+1][c+1]===0 ? {r:r+1, c:c+1} : {r:r+1, c:c-1}});
+                        // Yeyish imkoniyati bormi?
+                        if(r+2 < 8 && c+2 < 8 && board[r+1][c+1] === 1 && board[r+2][c+2] === 0) {
+                            board[r+1][c+1] = 0; board[r+2][c+2] = 2; board[r][c] = 0;
+                            finishAiTurn(); return;
                         }
                     }
                 }
             }
-            if(moves.length > 0) {
-                let m = moves[Math.floor(Math.random() * moves.length)];
-                board[m.to.r][m.to.c] = 2;
-                board[m.from.r][m.from.c] = 0;
+            // Oddiy yurish
+            for(let r=7; r>=0; r--) {
+                for(let c=0; c<8; c++) {
+                    if(board[r][c] === 2 && r+1 < 8 && c+1 < 8 && board[r+1][c+1] === 0) {
+                        board[r+1][c+1] = 2; board[r][c] = 0;
+                        finishAiTurn(); return;
+                    }
+                }
             }
-            turn = 1;
-            render();
+            finishAiTurn();
+        }
+
+        function finishAiTurn() { turn = 1; render(); checkWinner(); }
+
+        function checkWinner() {
+            let p1 = 0, p2 = 0;
+            board.forEach(row => row.forEach(c => { if(c===1) p1++; if(c===2) p2++; }));
+            if(p1 === 0) document.getElementById('status').innerText = "AI Yutdi! O'yin tugadi.";
+            else if(p2 === 0) document.getElementById('status').innerText = "Siz Yutdingiz! O'yin tugadi.";
         }
     </script>
 </body>
