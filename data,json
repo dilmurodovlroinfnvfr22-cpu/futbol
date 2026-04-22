@@ -1,0 +1,12 @@
+{
+  "footballers": {
+    "messi": [
+      {
+        "id": 1,
+        "opponent": "Real Madrid",
+        "date": "2010-04-10",
+        "file_id": "BU_YERGA_TELEGRAM_FILE_ID_NI_QO'YASIZ"
+      }
+    ]
+  }
+}
