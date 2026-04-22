@@ -2,6 +2,10 @@
 <html>
 <head>
     <title>Futbol Arxiv</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; background: #f4f4f4; }
+        .card { background: white; border: 1px solid #ccc; margin: 20px auto; padding: 15px; border-radius: 10px; max-width: 500px; }
+    </style>
 </head>
 <body>
     <h1>Mening Futbol Arxivim</h1>
@@ -9,22 +13,29 @@
 
     <script>
         fetch('db.json')
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) throw new Error("Fayl topilmadi");
+                return response.json();
+            })
             .then(data => {
                 const app = document.getElementById('app');
                 app.innerHTML = "";
                 data.footballers.messi.forEach(item => {
                     app.innerHTML += `
-                        <div class="card" style="border: 1px solid #ccc; margin: 10px; padding: 15px;">
+                        <div class="card">
                             <h3>Raqib: ${item.opponent}</h3>
                             <p>Sana: ${item.date}</p>
-                            <a href="${item.file_id}" target="_blank">Video</a>
+                            <iframe width="100%" height="315" 
+                                src="${item.file_id}" 
+                                frameborder="0" 
+                                allowfullscreen>
+                            </iframe>
                         </div>
                     `;
                 });
             })
             .catch(err => {
-                document.getElementById('app').innerHTML = "Xatolik: " + err;
+                document.getElementById('app').innerHTML = "Xatolik yuz berdi: " + err;
             });
     </script>
 </body>
