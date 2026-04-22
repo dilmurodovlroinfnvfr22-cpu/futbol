@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Futbol Arxiv</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 20px; }
+        .card { border: 1px solid #ccc; margin: 10px; padding: 15px; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>Mening Futbol Arxivim</h1>
+    <div id="app">Ma'lumotlar yuklanmoqda...</div>
+
+    <script>
+        fetch('data.json')
+            .then(response => response.json())
+            .then(data => {
+                const app = document.getElementById('app');
+                app.innerHTML = ""; // Yuklanmoqda yozuvini o'chiramiz
+                data.footballers.messi.forEach(item => {
+                    app.innerHTML += `
+                        <div class="card">
+                            <h3>Raqib: ${item.opponent}</h3>
+                            <p>Sana: ${item.date}</p>
+                            <button onclick="alert('Video ID: ${item.file_id}')">Videoni ko'rish</button>
+                        </div>
+                    `;
+                });
+            });
+    </script>
+</body>
+</html>
