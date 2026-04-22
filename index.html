@@ -1,12 +1,31 @@
-// Eski kodingizda: fetch('data.json') edi.
-// Buni o'zgartiring:
-fetch('db.json') 
-    .then(response => {
-        if (!response.ok) {
-            throw new Error("Fayl topilmadi! Status: " + response.status);
-        }
-        return response.json();
-    })
-    .then(data => {
-        // ... qolgan kodlar o'zgarmaydi
-    })
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Futbol Arxiv</title>
+</head>
+<body>
+    <h1>Mening Futbol Arxivim</h1>
+    <div id="app">Ma'lumotlar yuklanmoqda...</div>
+
+    <script>
+        fetch('db.json')
+            .then(response => response.json())
+            .then(data => {
+                const app = document.getElementById('app');
+                app.innerHTML = "";
+                data.footballers.messi.forEach(item => {
+                    app.innerHTML += `
+                        <div class="card" style="border: 1px solid #ccc; margin: 10px; padding: 15px;">
+                            <h3>Raqib: ${item.opponent}</h3>
+                            <p>Sana: ${item.date}</p>
+                            <a href="${item.file_id}" target="_blank">Video</a>
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                document.getElementById('app').innerHTML = "Xatolik: " + err;
+            });
+    </script>
+</body>
+</html>
