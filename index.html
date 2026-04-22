@@ -1,25 +1,37 @@
 <!DOCTYPE html>
-<html lang="uz">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mening Web App</title>
+    <title>Jumping Game</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { margin: 0; overflow: hidden; background: #87CEEB; text-align: center; font-family: sans-serif; }
+        #game { width: 100%; height: 200px; background: #fff; margin-top: 50px; position: relative; border-bottom: 5px solid #333; }
+        #player { width: 50px; height: 50px; background: red; position: absolute; bottom: 0; left: 50px; }
+        #obstacle { width: 30px; height: 30px; background: green; position: absolute; bottom: 0; right: 0; }
+        .jump { animation: jump 0.5s linear; }
+        @keyframes jump { 0% { bottom: 0; } 30% { bottom: 100px; } 70% { bottom: 100px; } 100% { bottom: 0; } }
+        @keyframes move { 0% { right: -50px; } 100% { right: 100%; } }
+        .animate { animation: move 1.5s infinite linear; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h1>Salom!</h1>
-        <p>Bu mening Telegram Web App'im.</p>
-        <button onclick="Telegram.WebApp.close()">Yopish</button>
+    <h3>O‘yin: Sakrash</h3>
+    <p>O‘ynash uchun ekranga bosing</p>
+    <div id="game" onclick="jump()">
+        <div id="player"></div>
+        <div id="obstacle" class="animate"></div>
     </div>
 
     <script>
-        // Telegram Web App'ni ishga tushirish
         Telegram.WebApp.ready();
+        function jump() {
+            let player = document.getElementById("player");
+            if (!player.classList.contains("jump")) {
+                player.classList.add("jump");
+                setTimeout(() => player.classList.remove("jump"), 500);
+            }
+        }
     </script>
 </body>
 </html>
