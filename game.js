@@ -24,4 +24,4 @@ function renderBoard() {
     }
 }
 
-initGame();
+initGame():
